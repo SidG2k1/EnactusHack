@@ -20,16 +20,19 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.security.Permission;
+import java.util.logging.ConsoleHandler;
 
 public class MapsActivity extends AppCompatActivity
         implements OnMapReadyCallback,
         GoogleMap.OnMyLocationButtonClickListener,
         GoogleMap.OnMyLocationClickListener,
-        ActivityCompat.OnRequestPermissionsResultCallback {
+        ActivityCompat.OnRequestPermissionsResultCallback{
 
     private GoogleMap mMap;
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
+
+    private LatLng moment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +42,8 @@ public class MapsActivity extends AppCompatActivity
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        moment = new LatLng(43.008839, -81.273155);
     }
 
 
@@ -56,7 +61,6 @@ public class MapsActivity extends AppCompatActivity
         mMap = googleMap;
 
         // Add a marker in Sydney and move the camera
-        LatLng moment = new LatLng(43.008839, -81.273155);
         mMap.addMarker(new MarkerOptions().position(moment).title("moment by richard"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(moment));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(20f));
