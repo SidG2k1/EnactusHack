@@ -18,6 +18,8 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.security.Permission;
+
 public class MapsActivity extends AppCompatActivity
         implements OnMapReadyCallback,
         GoogleMap.OnMyLocationButtonClickListener,
@@ -25,6 +27,8 @@ public class MapsActivity extends AppCompatActivity
         ActivityCompat.OnRequestPermissionsResultCallback {
 
     private GoogleMap mMap;
+
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +68,8 @@ public class MapsActivity extends AppCompatActivity
     private void enableMyLocation() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
         != PackageManager.PERMISSION_GRANTED) {
-            // TODO: request permission
+            PermissionUtils.requestPermission(this, LOCATION_PERMISSION_REQUEST_CODE,
+                    Manifest.permission.ACCESS_FINE_LOCATION, true);
 
         } else if (mMap != null) {
             mMap.setMyLocationEnabled(true);
