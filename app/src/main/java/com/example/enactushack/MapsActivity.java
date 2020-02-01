@@ -7,10 +7,20 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Looper;
+import android.widget.Toast;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -26,7 +36,7 @@ public class MapsActivity extends AppCompatActivity
         implements OnMapReadyCallback,
         GoogleMap.OnMyLocationButtonClickListener,
         GoogleMap.OnMyLocationClickListener,
-        ActivityCompat.OnRequestPermissionsResultCallback{
+        ActivityCompat.OnRequestPermissionsResultCallback {
 
     private GoogleMap mMap;
 
@@ -44,8 +54,32 @@ public class MapsActivity extends AppCompatActivity
         mapFragment.getMapAsync(this);
 
         moment = new LatLng(43.008839, -81.273155);
-    }
 
+        LocationCallback locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    System.out.println("NOT FOUND");
+                    return;
+                }
+                System.out.println("LOCATION FOUND");
+                for (Location l : locationResult.getLocations()) {
+                    System.out.println("LAT: " + l.getLatitude() + " LONG: " + l.getLongitude());
+                    Toast.makeText(getApplicationContext(), "LAT: " + l.getLatitude() + " LONG: " + l.getLongitude(), Toast.LENGTH_SHORT).show();
+                    mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(l.getLatitude(), l.getLongitude())));
+                }
+            }
+        };
+
+        FusedLocationProviderClient client = LocationServices.getFusedLocationProviderClient(this);
+
+        LocationRequest lr = new LocationRequest();
+        lr.setInterval(1000);
+        lr.setFastestInterval(500);
+        lr.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        client.requestLocationUpdates(lr, locationCallback, Looper.getMainLooper());
+
+    }
 
     /**
      * Manipulates the map once available.
