@@ -38,12 +38,18 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.lang.reflect.Array;
 import java.security.Permission;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.logging.ConsoleHandler;
 
-    public class MapsActivity extends AppCompatActivity
+public class MapsActivity extends AppCompatActivity
         implements OnMapReadyCallback,
         GoogleMap.OnMyLocationButtonClickListener,
         GoogleMap.OnMyLocationClickListener,
@@ -53,9 +59,23 @@ import java.util.logging.ConsoleHandler;
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
-    private LatLng moment;
     private Button btnMoment;
     private LatLng devicePos;
+
+    private List<Moment> moments = new ArrayList<>();
+
+    private void addMoment(String message, LatLng pos) {
+        new SimpleDateFormat("MM/dd/yyyy");
+        SimpleDateFormat formatter;
+        formatter = new SimpleDateFormat("dd MMMM yyyy");
+        String date = formatter.format(new Date());
+        Marker marker = mMap.addMarker(new MarkerOptions().position(pos)
+                .title(date)
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_hidden)));
+        Moment moment = new Moment(message, date, "richard", pos, marker);
+
+        moments.add(moment);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,9 +102,7 @@ import java.util.logging.ConsoleHandler;
                 dialog.setPositiveButton("send", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        mMap.addMarker(new MarkerOptions().position(devicePos)
-                                .title(input.getText().toString())
-                                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_hidden)));
+                        addMoment(input.getText().toString(), devicePos);
                         dialog.dismiss();
                     }
                 });
@@ -98,8 +116,6 @@ import java.util.logging.ConsoleHandler;
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        moment = new LatLng(43.008839, -81.273155);
-
         LocationCallback locationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
@@ -108,12 +124,21 @@ import java.util.logging.ConsoleHandler;
                 }
                 for (Location l : locationResult.getLocations()) {
                     devicePos = new LatLng(l.getLatitude(), l.getLongitude());
-                    double dist = getDistanceFromMarker(devicePos, moment);
-                    if (dist < 1) {
-                        Toast.makeText(getApplicationContext(), "Moment found!", Toast.LENGTH_SHORT).show();
+                    //double dist = getDistanceFromMarker(devicePos, moment);
+                    for (Moment moment : moments) {
+                        double dist = getDistanceFromMarker(devicePos, moment.pos);
+                        if (dist < 1 && !moment.found) {
+                            moment.found = true;
+                            Toast.makeText(getApplicationContext(), "Moment found!", Toast.LENGTH_SHORT).show();
+                            // TODO: hide marker and show card
+                            moment.marker.setVisible(false);
+                        }
 
+                        if (dist > 2 && moment.found) {
+                            moment.found = false;
+                            moment.marker.setVisible(true);
+                        }
                     }
-                    mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(l.getLatitude(), l.getLongitude())));
                 }
             }
         };
@@ -121,8 +146,8 @@ import java.util.logging.ConsoleHandler;
         FusedLocationProviderClient client = LocationServices.getFusedLocationProviderClient(this);
 
         LocationRequest lr = new LocationRequest();
-        lr.setInterval(1000);
-        lr.setFastestInterval(500);
+        lr.setInterval(300);
+        lr.setFastestInterval(100);
         lr.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         client.requestLocationUpdates(lr, locationCallback, Looper.getMainLooper());
 
@@ -131,7 +156,7 @@ import java.util.logging.ConsoleHandler;
     private double getDistanceFromMarker(LatLng start, LatLng end) {
         double dlat = Math.abs(end.latitude - start.latitude);
         double dlong = Math.abs(end.longitude - start.longitude);
-        return Math.sqrt((dlat*dlat) + (dlong*dlong)) * 10000;
+        return Math.sqrt((dlat * dlat) + (dlong * dlong)) * 10000;
     }
 
     /**
@@ -147,11 +172,7 @@ import java.util.logging.ConsoleHandler;
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Add a marker in Sydney and move the camera
-        mMap.addMarker(new MarkerOptions().position(moment)
-                .title("moment by richard")
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_hidden)));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(moment));
+        addMoment("my first hackathon", new LatLng(43.008839, -81.273155));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(20f));
 
         mMap.setOnMyLocationButtonClickListener(this);
@@ -161,14 +182,14 @@ import java.util.logging.ConsoleHandler;
 
         try {
             googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style));
-        } catch (Resources.NotFoundException e)  {
+        } catch (Resources.NotFoundException e) {
             System.out.println(e);
         }
     }
 
     private void enableMyLocation() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-        != PackageManager.PERMISSION_GRANTED) {
+                != PackageManager.PERMISSION_GRANTED) {
             PermissionUtils.requestPermission(this, LOCATION_PERMISSION_REQUEST_CODE,
                     Manifest.permission.ACCESS_FINE_LOCATION, true);
 
