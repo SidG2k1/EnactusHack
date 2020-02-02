@@ -30,6 +30,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.security.Permission;
@@ -104,13 +105,27 @@ public class MapsActivity extends AppCompatActivity
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        mMap.setInfoWindowAdapter(new CustomInfoWindowAdapter(MapsActivity.this));
+        InfoWindowData info = new InfoWindowData();
+        info.setImage("img1");
+        info.setMoment("Hello boss");
+
+        CustomInfoWindowAdapter customInfoWindow = new CustomInfoWindowAdapter(this);
+        mMap.setInfoWindowAdapter(customInfoWindow);
+
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(moment);
+
+
+        Marker test = mMap.addMarker(markerOptions);
+        test.setTag(info);
+        test.setTitle("ello ter gov'ner");
+        test.showInfoWindow();
 
 
 
 
         // Add a marker in Sydney and move the camera
-        mMap.addMarker(new MarkerOptions().position(moment).title("moment by richard"));
+        //mMap.addMarker(new MarkerOptions().position(moment).title("moment by richard"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(moment));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(20f));
 
