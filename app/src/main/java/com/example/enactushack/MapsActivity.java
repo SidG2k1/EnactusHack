@@ -9,11 +9,13 @@ import androidx.fragment.app.FragmentActivity;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Looper;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -27,6 +29,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.security.Permission;
@@ -59,14 +62,14 @@ public class MapsActivity extends AppCompatActivity
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 if (locationResult == null) {
-                    System.out.println("NOT FOUND");
                     return;
                 }
-                System.out.println("LOCATION FOUND");
                 for (Location l : locationResult.getLocations()) {
-                    System.out.println("LAT: " + l.getLatitude() + " LONG: " + l.getLongitude());
                     double dist = getDistanceFromMarker(new LatLng(l.getLatitude(), l.getLongitude()), moment);
-                    Toast.makeText(getApplicationContext(), "DISTANCE: " + dist, Toast.LENGTH_SHORT).show();
+                    if (dist < 1) {
+                        Toast.makeText(getApplicationContext(), "Moment found!", Toast.LENGTH_SHORT).show();
+
+                    }
                     mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(l.getLatitude(), l.getLongitude())));
                 }
             }
@@ -110,6 +113,12 @@ public class MapsActivity extends AppCompatActivity
         mMap.setOnMyLocationClickListener(this);
 
         enableMyLocation();
+
+        try {
+            googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style));
+        } catch (Resources.NotFoundException e)  {
+            System.out.println(e);
+        }
     }
 
     private void enableMyLocation() {
@@ -125,6 +134,7 @@ public class MapsActivity extends AppCompatActivity
 
     @Override
     public boolean onMyLocationButtonClick() {
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(20f));
         return false;
     }
 
