@@ -65,7 +65,7 @@ public class MapsActivity extends AppCompatActivity
 
     private List<Moment> moments = new ArrayList<>();
 
-    private void addMoment(String message, LatLng pos) {
+    private void addMoment(String message, LatLng pos, String img) {
 
 
         //Code for custom info for each marker
@@ -77,7 +77,7 @@ public class MapsActivity extends AppCompatActivity
         formatter = new SimpleDateFormat("dd MMMM yyyy");
 
         InfoWindowData info = new InfoWindowData();
-        info.setImage("img1");
+        info.setImage(img);
         info.setMoment(message);
 
         String date = formatter.format(new Date());
@@ -104,7 +104,7 @@ public class MapsActivity extends AppCompatActivity
 
                 AlertDialog.Builder dialog = new AlertDialog.Builder(MapsActivity.this);
                 dialog.setTitle("create your moment");
-                dialog.setMessage("type here");
+                dialog.setMessage("make your mark");
 
                 final EditText input = new EditText(MapsActivity.this);
                 LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
@@ -113,10 +113,10 @@ public class MapsActivity extends AppCompatActivity
                 input.setLayoutParams(lp);
                 dialog.setView(input);
 
-                dialog.setPositiveButton("send", new DialogInterface.OnClickListener() {
+                dialog.setPositiveButton("capture moment", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        addMoment(input.getText().toString(), devicePos);
+                        addMoment(input.getText().toString(), devicePos, "img1");
                         dialog.dismiss();
                     }
                 });
@@ -141,18 +141,17 @@ public class MapsActivity extends AppCompatActivity
                     //double dist = getDistanceFromMarker(devicePos, moment);
                     for (Moment moment : moments) {
                         double dist = getDistanceFromMarker(devicePos, moment.pos);
-                        if (dist < 2 && !moment.found) {
+                        if (dist < 1 && !moment.found) {
                             moment.marker.showInfoWindow();
-                            //moment.marker.setVisible(false);
                             moment.found = true;
-                            // TODO: hide marker and show card
 
                         }
 
-                        if (dist >= 2 && moment.found) {
-                            moment.found = false;
+                        if (dist > 1 && moment.found) {
+                            if (moment.found) {
+                                moment.found = false;
+                            }
                             moment.marker.hideInfoWindow();
-                            //moment.marker.setVisible(true);
                         }
                     }
                 }
@@ -189,8 +188,9 @@ public class MapsActivity extends AppCompatActivity
         mMap = googleMap;
 
 
-        addMoment("chilling with the homies", new LatLng(43.008839, -81.273155));
+        addMoment("just being legendary", new LatLng(43.008839, -81.273155), "img2");
         mMap.animateCamera(CameraUpdateFactory.zoomTo(20f));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(moments.get(0).pos, 17f));
 
         mMap.setOnMyLocationButtonClickListener(this);
         mMap.setOnMyLocationClickListener(this);
@@ -230,6 +230,6 @@ public class MapsActivity extends AppCompatActivity
     @Override
     public boolean onMarkerClick(Marker marker) {
         double dist = getDistanceFromMarker(devicePos, marker.getPosition());
-        return dist > 2;
+        return dist > 1;
     }
 }

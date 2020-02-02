@@ -25,6 +25,7 @@
         android:layout_height="69dp"
         android:background="@drawable/custom_button"
         android:text="moment"
+        android:textColor="#ffff"
         map:layout_constraintBottom_toBottomOf="@+id/map"
         map:layout_constraintEnd_toEndOf="parent"
         map:layout_constraintHorizontal_bias="0.497"
