@@ -65,7 +65,8 @@ public class MapsActivity extends AppCompatActivity
                 System.out.println("LOCATION FOUND");
                 for (Location l : locationResult.getLocations()) {
                     System.out.println("LAT: " + l.getLatitude() + " LONG: " + l.getLongitude());
-                    Toast.makeText(getApplicationContext(), "LAT: " + l.getLatitude() + " LONG: " + l.getLongitude(), Toast.LENGTH_SHORT).show();
+                    double dist = getDistanceFromMarker(new LatLng(l.getLatitude(), l.getLongitude()), moment);
+                    Toast.makeText(getApplicationContext(), "DISTANCE: " + dist, Toast.LENGTH_SHORT).show();
                     mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(l.getLatitude(), l.getLongitude())));
                 }
             }
@@ -79,6 +80,12 @@ public class MapsActivity extends AppCompatActivity
         lr.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         client.requestLocationUpdates(lr, locationCallback, Looper.getMainLooper());
 
+    }
+
+    private double getDistanceFromMarker(LatLng start, LatLng end) {
+        double dlat = Math.abs(end.latitude - start.latitude);
+        double dlong = Math.abs(end.longitude - start.longitude);
+        return Math.sqrt((dlat*dlat) + (dlong*dlong)) * 10000;
     }
 
     /**
