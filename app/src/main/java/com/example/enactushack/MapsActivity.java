@@ -1,6 +1,7 @@
 package com.example.enactushack;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -8,6 +9,7 @@ import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.location.Location;
@@ -16,6 +18,11 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -28,6 +35,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -35,7 +43,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.security.Permission;
 import java.util.logging.ConsoleHandler;
 
-public class MapsActivity extends AppCompatActivity
+    public class MapsActivity extends AppCompatActivity
         implements OnMapReadyCallback,
         GoogleMap.OnMyLocationButtonClickListener,
         GoogleMap.OnMyLocationClickListener,
@@ -46,11 +54,45 @@ public class MapsActivity extends AppCompatActivity
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
     private LatLng moment;
+    private Button btnMoment;
+    private LatLng devicePos;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+        btnMoment = findViewById(R.id.btnCam);
+        btnMoment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getApplicationContext(), "captured", Toast.LENGTH_SHORT).show();
+
+                AlertDialog.Builder dialog = new AlertDialog.Builder(MapsActivity.this);
+                dialog.setTitle("create your moment");
+                dialog.setMessage("type here");
+
+                final EditText input = new EditText(MapsActivity.this);
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.MATCH_PARENT);
+                input.setLayoutParams(lp);
+                dialog.setView(input);
+
+                dialog.setPositiveButton("send", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        mMap.addMarker(new MarkerOptions().position(devicePos)
+                                .title(input.getText().toString())
+                                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_hidden)));
+                        dialog.dismiss();
+                    }
+                });
+
+                dialog.show();
+            }
+        });
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -65,7 +107,8 @@ public class MapsActivity extends AppCompatActivity
                     return;
                 }
                 for (Location l : locationResult.getLocations()) {
-                    double dist = getDistanceFromMarker(new LatLng(l.getLatitude(), l.getLongitude()), moment);
+                    devicePos = new LatLng(l.getLatitude(), l.getLongitude());
+                    double dist = getDistanceFromMarker(devicePos, moment);
                     if (dist < 1) {
                         Toast.makeText(getApplicationContext(), "Moment found!", Toast.LENGTH_SHORT).show();
 
@@ -105,7 +148,9 @@ public class MapsActivity extends AppCompatActivity
         mMap = googleMap;
 
         // Add a marker in Sydney and move the camera
-        mMap.addMarker(new MarkerOptions().position(moment).title("moment by richard"));
+        mMap.addMarker(new MarkerOptions().position(moment)
+                .title("moment by richard")
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_hidden)));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(moment));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(20f));
 
