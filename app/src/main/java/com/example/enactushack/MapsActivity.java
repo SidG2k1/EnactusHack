@@ -104,6 +104,11 @@ public class MapsActivity extends AppCompatActivity
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
+        mMap.setInfoWindowAdapter(new CustomInfoWindowAdapter(MapsActivity.this));
+
+
+
+
         // Add a marker in Sydney and move the camera
         mMap.addMarker(new MarkerOptions().position(moment).title("moment by richard"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(moment));
