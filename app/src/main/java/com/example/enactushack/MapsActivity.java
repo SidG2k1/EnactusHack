@@ -65,14 +65,28 @@ public class MapsActivity extends AppCompatActivity
     private List<Moment> moments = new ArrayList<>();
 
     private void addMoment(String message, LatLng pos) {
+
+
+        //Code for custom info for each marker
+        CustomInfoWindowAdapter customInfoWindow = new CustomInfoWindowAdapter(this);
+        mMap.setInfoWindowAdapter(customInfoWindow);
+
         new SimpleDateFormat("MM/dd/yyyy");
         SimpleDateFormat formatter;
         formatter = new SimpleDateFormat("dd MMMM yyyy");
+
+        InfoWindowData info = new InfoWindowData();
+        info.setImage("img1");
+        info.setMoment(message);
+
         String date = formatter.format(new Date());
         Marker marker = mMap.addMarker(new MarkerOptions().position(pos)
                 .title(date)
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_hidden)));
+        marker.setTag(info);
+        marker.hideInfoWindow();
         Moment moment = new Moment(message, date, "richard", pos, marker);
+
 
         moments.add(moment);
     }
@@ -127,16 +141,19 @@ public class MapsActivity extends AppCompatActivity
                     //double dist = getDistanceFromMarker(devicePos, moment);
                     for (Moment moment : moments) {
                         double dist = getDistanceFromMarker(devicePos, moment.pos);
-                        if (dist < 1 && !moment.found) {
+                        if (dist < 2 && !moment.found) {
+                            moment.marker.showInfoWindow();
+                            //moment.marker.setVisible(false);
                             moment.found = true;
                             Toast.makeText(getApplicationContext(), "Moment found!", Toast.LENGTH_SHORT).show();
                             // TODO: hide marker and show card
-                            moment.marker.setVisible(false);
+
                         }
 
-                        if (dist > 2 && moment.found) {
+                        if (dist >= 2 && moment.found) {
                             moment.found = false;
-                            moment.marker.setVisible(true);
+                            moment.marker.hideInfoWindow();
+                            //moment.marker.setVisible(true);
                         }
                     }
                 }
@@ -171,6 +188,7 @@ public class MapsActivity extends AppCompatActivity
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+
 
         addMoment("my first hackathon", new LatLng(43.008839, -81.273155));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(20f));
