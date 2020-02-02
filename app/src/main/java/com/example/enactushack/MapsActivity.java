@@ -53,7 +53,8 @@ public class MapsActivity extends AppCompatActivity
         implements OnMapReadyCallback,
         GoogleMap.OnMyLocationButtonClickListener,
         GoogleMap.OnMyLocationClickListener,
-        ActivityCompat.OnRequestPermissionsResultCallback {
+        ActivityCompat.OnRequestPermissionsResultCallback,
+        GoogleMap.OnMarkerClickListener {
 
     private GoogleMap mMap;
 
@@ -81,11 +82,11 @@ public class MapsActivity extends AppCompatActivity
 
         String date = formatter.format(new Date());
         Marker marker = mMap.addMarker(new MarkerOptions().position(pos)
-                .title(date)
+                .title(message)
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_hidden)));
         marker.setTag(info);
         marker.hideInfoWindow();
-        Moment moment = new Moment(message, date, "richard", pos, marker);
+        Moment moment = new Moment(message, date, "moiz", pos, marker);
 
 
         moments.add(moment);
@@ -100,7 +101,6 @@ public class MapsActivity extends AppCompatActivity
         btnMoment.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "captured", Toast.LENGTH_SHORT).show();
 
                 AlertDialog.Builder dialog = new AlertDialog.Builder(MapsActivity.this);
                 dialog.setTitle("create your moment");
@@ -145,7 +145,6 @@ public class MapsActivity extends AppCompatActivity
                             moment.marker.showInfoWindow();
                             //moment.marker.setVisible(false);
                             moment.found = true;
-                            Toast.makeText(getApplicationContext(), "Moment found!", Toast.LENGTH_SHORT).show();
                             // TODO: hide marker and show card
 
                         }
@@ -190,11 +189,12 @@ public class MapsActivity extends AppCompatActivity
         mMap = googleMap;
 
 
-        addMoment("my first hackathon", new LatLng(43.008839, -81.273155));
+        addMoment("chilling with the homies", new LatLng(43.008839, -81.273155));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(20f));
 
         mMap.setOnMyLocationButtonClickListener(this);
         mMap.setOnMyLocationClickListener(this);
+        mMap.setOnMarkerClickListener(this);
 
         enableMyLocation();
 
@@ -225,5 +225,11 @@ public class MapsActivity extends AppCompatActivity
     @Override
     public void onMyLocationClick(@NonNull Location location) {
 
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        double dist = getDistanceFromMarker(devicePos, marker.getPosition());
+        return dist > 2;
     }
 }
